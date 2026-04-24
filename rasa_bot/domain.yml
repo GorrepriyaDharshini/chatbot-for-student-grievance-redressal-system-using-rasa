@@ -1,0 +1,133 @@
+version: "3.1"
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
+
+intents:
+  - greet
+  - register_complaint
+  - check_status
+  - open_discussion
+  - faq
+  - faculty_feedback
+  - contact_us
+  - goodbye
+  - inform
+  - affirm
+  - deny
+  - thank_you
+  - chitchat
+  - nlu_fallback
+
+entities:
+  - complaint_id
+
+slots:
+  name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  roll_number:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  email:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  department:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  category:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: complaint_form
+            requested_slot: category
+  brief_explanation:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: complaint_form
+            requested_slot: brief_explanation
+  description:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: complaint_form
+            requested_slot: description
+
+forms:
+  complaint_form:
+    required_slots:
+      - category
+      - brief_explanation
+      - description
+
+actions:
+  - utter_greet
+  - utter_goodbye
+  - utter_ask_category
+  - utter_ask_brief_explanation
+  - utter_ask_description
+  - utter_complaint_submitted
+  - utter_contact
+  - utter_default
+  - utter_start_complaint
+  - utter_faq
+  - utter_discussion
+  - utter_faculty_feedback
+  - action_submit_complaint
+  - action_check_status
+  - action_default_fallback
+
+responses:
+  utter_greet:
+    - text: "Hi! I'm the ResolveX AIML assistant. I can help you register a complaint, check status, or point you to FAQs. What would you like to do?"
+  utter_goodbye:
+    - text: "Take care — if anything else comes up, open Raise Grievances again anytime."
+  utter_ask_category:
+    - text: "Choose a complaint category (or type your own): academic, infrastructure, hostel, harassment, facilities, or other."
+  utter_ask_brief_explanation:
+    - text: "Please give a short one-line title for your complaint."
+  utter_ask_description:
+    - text: "Please describe your issue in detail."
+  utter_complaint_submitted:
+    - text: "Your complaint is registered. Please save your Complaint ID."
+  utter_contact:
+    - text: "For urgent help, email aiml-grievance@college.edu or visit the AIML department office."
+  utter_default:
+    - text: "I’m not sure I understood. You can say 'register complaint', 'check status CMP1234', or ask for FAQs."
+    - text: "Sorry, I missed that. I can help file a complaint, track complaint status, or guide you to FAQ/discussion."
+
+  utter_thank_you:
+    - text: "You are welcome. I am happy to assist you."
+    - text: "Happy to help. If needed, I can also register another complaint."
+
+  utter_chitchat:
+    - text: "I’m doing well. I can help you register a complaint, check status, or find support information."
+    - text: "I’m here to assist with grievance-related help. Tell me your issue and I’ll guide you."
+
+  utter_discussion:
+    - text: "Please describe your issue for discussion."
+
+  utter_faq:
+    - text: "Here are some frequently asked questions."
+
+  utter_start_complaint:
+    - text: "Let’s register your complaint. I will ask 3 questions: category, short title, then detailed description."
+
+  utter_faculty_feedback:
+    - text: "Please provide your feedback about faculty."

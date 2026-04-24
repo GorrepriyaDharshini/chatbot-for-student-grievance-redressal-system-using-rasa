@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | ResolveX</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="container-fluid min-vh-100">
+    <div class="row min-vh-100">
+      <div class="col-md-6 d-flex flex-column justify-content-center p-5" style="background: linear-gradient(135deg, #dbe8ff, #cbdcf7);" id="hero-col">
+        <h1 id="hero-title">Hello Students!</h1>
+        <p class="fs-5" id="hero-lead">Got an issue? Speak up with ResolveX — safe, simple, and trackable.</p>
+        <ul class="list-unstyled mt-3" id="hero-list">
+          <li>Safe &amp; anonymous options where policy allows</li>
+          <li>AI assistant for quick complaint capture</li>
+          <li>Live tracking with Complaint ID</li>
+        </ul>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-center p-5 bg-light">
+        <div class="w-100" style="max-width: 420px;">
+          <h2 class="fw-bold mb-1">Welcome to ResolveX</h2>
+          <p class="text-muted mb-4" id="login-lead">Log in with your portal credentials.</p>
+          <div class="btn-group w-100 mb-3" role="group">
+            <button type="button" class="btn btn-primary" id="mode-student">Student</button>
+            <button type="button" class="btn btn-outline-primary" id="mode-admin">Admin</button>
+          </div>
+          <form id="login-form" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="login-id-input" id="login-id-label">Student ID</label>
+              <input type="text" class="form-control" id="login-id-input" name="username" required autocomplete="username" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="login-password">Password</label>
+              <input type="password" class="form-control" id="login-password" name="password" required autocomplete="current-password" />
+            </div>
+            <div class="alert alert-danger d-none" id="login-err"></div>
+            <button class="btn btn-primary w-100 py-2" type="submit" id="btn-login">Log in</button>
+          </form>
+
+          <div class="mt-4 pt-3 border-top" id="student-account-actions">
+            <p class="small text-muted mb-2">New to the portal?</p>
+            <button type="button" class="btn btn-outline-secondary w-100" id="btn-register-student">Create student account</button>
+            <p class="small text-muted mt-2 mb-0">Roster students: use your Student ID as both username and password unless you changed it after registering.</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-none" id="admin-account-actions">
+            <p class="small text-muted mb-2">Administrator access</p>
+            <button type="button" class="btn btn-outline-secondary w-100" id="btn-admin-info">How admin accounts work</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student self-registration -->
+  <div class="modal fade" id="regModalStudent" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create student account</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="reg-form-student">
+            <input class="form-control mb-2" name="name" placeholder="Full name" required />
+            <input class="form-control mb-2" name="roll_number" placeholder="Student ID (roll number)" required />
+            <input class="form-control mb-2" type="email" name="email" placeholder="Email" required />
+            <input class="form-control mb-2" name="department" placeholder="Department (AIML)" value="AIML" />
+            <input class="form-control mb-2" name="phone" placeholder="Phone" />
+            <input class="form-control mb-2" type="password" name="password" placeholder="Choose password" required />
+            <div class="alert alert-danger d-none" id="reg-student-err"></div>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin: no self-service signup -->
+  <div class="modal fade" id="regModalAdmin" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Admin accounts</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Administrator accounts are <strong>not</strong> created through this page. They are issued by the AIML department.</p>
+          <p class="text-muted small mt-3 mb-0">Use the <strong>Admin</strong> tab above with your staff username and password. Students should use <strong>Student</strong> and &ldquo;Create student account&rdquo; if they are not on the college roster.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    let mode = "student";
+    const err = document.getElementById("login-err");
+    const heroTitle = document.getElementById("hero-title");
+    const heroLead = document.getElementById("hero-lead");
+    const heroList = document.getElementById("hero-list");
+    const loginLead = document.getElementById("login-lead");
+    const loginIdLabel = document.getElementById("login-id-label");
+    const loginIdInput = document.getElementById("login-id-input");
+    const studentActions = document.getElementById("student-account-actions");
+    const adminActions = document.getElementById("admin-account-actions");
+
+    function applyMode() {
+      err.classList.add("d-none");
+      if (mode === "admin") {
+        document.getElementById("mode-admin").classList.replace("btn-outline-primary", "btn-primary");
+        document.getElementById("mode-student").classList.replace("btn-primary", "btn-outline-primary");
+        heroTitle.textContent = "AIML staff portal";
+        heroLead.textContent = "Manage grievances, FAQs, and feedback for the department.";
+        heroList.innerHTML =
+          "<li>Review and update complaint status</li><li>Maintain FAQs and view student feedback</li><li>Secure access with staff credentials</li>";
+        loginLead.textContent = "Enter your AIML admin username and password.";
+        loginIdLabel.textContent = "Admin username";
+        loginIdInput.placeholder = "aiml_admin";
+        studentActions.classList.add("d-none");
+        adminActions.classList.remove("d-none");
+      } else {
+        document.getElementById("mode-student").classList.replace("btn-outline-primary", "btn-primary");
+        document.getElementById("mode-admin").classList.replace("btn-primary", "btn-outline-primary");
+        heroTitle.textContent = "Hello Students!";
+        heroLead.textContent = "Got an issue? Speak up with ResolveX — safe, simple, and trackable.";
+        heroList.innerHTML =
+          "<li>Safe &amp; anonymous options where policy allows</li><li>AI assistant for quick complaint capture</li><li>Live tracking with Complaint ID</li>";
+        loginLead.textContent = "Log in with your Student ID and password.";
+        loginIdLabel.textContent = "Student ID";
+        loginIdInput.placeholder = "e.g. 22671A6615";
+        studentActions.classList.remove("d-none");
+        adminActions.classList.add("d-none");
+      }
+    }
+
+    document.getElementById("mode-student").onclick = () => {
+      mode = "student";
+      applyMode();
+    };
+    document.getElementById("mode-admin").onclick = () => {
+      mode = "admin";
+      applyMode();
+    };
+    applyMode();
+
+    document.getElementById("login-form").onsubmit = async (e) => {
+      e.preventDefault();
+      err.classList.add("d-none");
+      const fd = new FormData(e.target);
+      const body = { username: (fd.get("username") || "").trim(), password: fd.get("password") || "" };
+      try {
+        if (mode === "admin") {
+          await api("/api/admin/login", { method: "POST", body: JSON.stringify(body) });
+          sessionStorage.setItem("rx_admin", "1");
+          window.location.href = "/admin.html";
+        } else {
+          const r = await api("/api/login", { method: "POST", body: JSON.stringify(body) });
+          sessionStorage.setItem("rx_name", r.user.name);
+          localStorage.setItem("rx_student_id", String(r.user.id));
+          localStorage.setItem("rx_student_name", r.user.name);
+          window.location.href = "/home.html";
+        }
+      } catch (x) {
+        err.textContent = x.data?.error || x.message;
+        err.classList.remove("d-none");
+      }
+    };
+
+    document.getElementById("btn-register-student").onclick = () =>
+      new bootstrap.Modal("#regModalStudent").show();
+    document.getElementById("btn-admin-info").onclick = () =>
+      new bootstrap.Modal("#regModalAdmin").show();
+
+    document.getElementById("reg-form-student").onsubmit = async (e) => {
+      e.preventDefault();
+      const re = document.getElementById("reg-student-err");
+      re.classList.add("d-none");
+      const fd = new FormData(e.target);
+      const payload = Object.fromEntries(fd.entries());
+      try {
+        await api("/api/register", { method: "POST", body: JSON.stringify(payload) });
+        bootstrap.Modal.getInstance(document.getElementById("regModalStudent")).hide();
+        alert("Student account created — you can log in now.");
+      } catch (x) {
+        re.textContent = x.data?.error || x.message;
+        re.classList.remove("d-none");
+      }
+    };
+  </script>
+</body>
+</html>

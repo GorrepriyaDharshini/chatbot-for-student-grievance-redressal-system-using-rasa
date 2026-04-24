@@ -1,0 +1,5 @@
+# Install ONLY with Python 3.8, 3.9, or 3.10 (RASA Open Source 3.6.x constraint).
+-r requirements.txt
+rasa>=3.6.0,<3.7.0
+# Pin for Rasa 3.6.x compatibility (avoids SQLAlchemy 2.0 deprecation noise)
+sqlalchemy>=1.4.0,<2.0.0

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Faculty Feedback | ResolveX</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="rx-layout" id="layout"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    const DEPARTMENT = "AIML";
+
+    const FACULTY = [
+      { id: "gurrampally", label: "Dr. Gurrampally Kumar (HOD & Professor)" },
+      { id: "akheel", label: "Dr. Akheel Mohammed" },
+      { id: "sathishkumar", label: "Sathishkumar MD" },
+      { id: "mahebub", label: "Mahebub Ali" },
+      { id: "radhika", label: "Radhika Reddy Devarapalli" },
+    ];
+
+    const CRITERIA = [
+      "Faculty's subject knowledge",
+      "Clarity of concept explanation",
+      "Effectiveness of board/teaching tools",
+      "Clarity of writing and diagrams",
+      "Interaction with students",
+      "Approachability for doubts",
+      "Use of real-world examples",
+      "Relevance of examples to topics",
+      "Syllabus completion on time",
+      "Class pace and flow",
+    ];
+
+    function criterionKey(facultyId, index) {
+      return `${facultyId}_c${index}`;
+    }
+
+    function buildFacultySection(f) {
+      const headerCells = [1, 2, 3, 4, 5]
+        .map((n) => `<th class="text-center rx-faculty-rate-head">${n}</th>`)
+        .join("");
+      const rows = CRITERIA.map((label, i) => {
+        const name = criterionKey(f.id, i);
+        const radios = [1, 2, 3, 4, 5]
+          .map(
+            (v) =>
+              `<td class="text-center align-middle">
+                <input class="form-check-input rx-faculty-radio" type="radio" name="${name}" value="${v}" required aria-label="${label}: ${v}" />
+              </td>`
+          )
+          .join("");
+        return `<tr>
+          <th scope="row" class="rx-faculty-criterion">${label}</th>
+          ${radios}
+        </tr>`;
+      }).join("");
+
+      return `<section class="rx-faculty-section rx-panel-card mb-4 overflow-hidden" data-faculty-id="${f.id}">
+        <header class="rx-faculty-section-head px-3 py-2">
+          <h2 class="h6 mb-0 fw-bold text-white">${f.label}</h2>
+        </header>
+        <div class="table-responsive p-2 p-md-3">
+          <table class="table table-sm table-bordered align-middle mb-0 rx-faculty-table">
+            <thead>
+              <tr>
+                <th scope="col" class="rx-faculty-criteria-col">Criteria</th>
+                ${headerCells}
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>`;
+    }
+
+    function collectRatings(facultyId) {
+      const out = {};
+      for (let i = 0; i < CRITERIA.length; i++) {
+        const name = criterionKey(facultyId, i);
+        const el = document.querySelector(`input[name="${name}"]:checked`);
+        if (!el) return null;
+        out[CRITERIA[i]] = parseInt(el.value, 10);
+      }
+      return out;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireStudent();
+      if (!user) return;
+
+      const sections = FACULTY.map(buildFacultySection).join("");
+
+      document.getElementById("layout").innerHTML =
+        mountStudentSidebar("faculty") +
+        `<main class="rx-main w-100 pb-5">
+          <h1 class="fw-bold mb-1">AIML Faculty Feedback</h1>
+          <p class="text-muted mb-4">Rate each criterion from <strong>1</strong> (lowest) to <strong>5</strong> (highest) for every faculty member.</p>
+          <form id="ff-form" class="rx-faculty-forms">
+            ${sections}
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <button type="submit" class="btn btn-primary px-4" id="ff-submit">Submit all feedback</button>
+              <span class="text-muted small" id="ff-status" aria-live="polite"></span>
+            </div>
+          </form>
+        </main>`;
+
+      document.getElementById("rx-signout")?.addEventListener("click", () => logoutStudent());
+      initThemeToggle();
+
+      document.getElementById("ff-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const status = document.getElementById("ff-status");
+        const btn = document.getElementById("ff-submit");
+        status.textContent = "";
+        btn.disabled = true;
+
+        try {
+          for (const f of FACULTY) {
+            const ratings = collectRatings(f.id);
+            if (!ratings) {
+              status.textContent = `Please complete all ratings for ${f.label}.`;
+              btn.disabled = false;
+              document.querySelector(`[data-faculty-id="${f.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              return;
+            }
+            await api("/api/faculty_feedback", {
+              method: "POST",
+              body: JSON.stringify({
+                faculty_name: f.label,
+                department: DEPARTMENT,
+                ratings,
+              }),
+            });
+          }
+          status.textContent = "Thank you — all feedback was submitted.";
+          status.classList.remove("text-danger");
+          status.classList.add("text-success");
+        } catch (err) {
+          status.textContent = err.data?.error || err.message || "Submit failed.";
+          status.classList.add("text-danger");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

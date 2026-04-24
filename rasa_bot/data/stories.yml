@@ -1,0 +1,51 @@
+version: "3.1"
+
+stories:
+  # Matches domain complaint_form (category + brief_explanation + description) → submit
+  - story: happy path complaint registration
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: register_complaint
+      - action: utter_start_complaint
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - category: hostel food
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - brief_explanation: Mess food is not hygienic
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - description: food is not good
+      - action: complaint_form
+      - active_loop: null
+      - action: action_submit_complaint
+
+  - story: register then category and description
+    steps:
+      - intent: register_complaint
+      - action: utter_start_complaint
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - category: infrastructure
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - brief_explanation: Lab systems crash
+      - action: complaint_form
+      - active_loop: complaint_form
+      - intent: inform
+      - slot_was_set:
+          - description: Lab systems crash during class.
+      - action: complaint_form
+      - active_loop: null
+      - action: action_submit_complaint

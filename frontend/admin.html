@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin | ResolveX</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="rx-layout">
+    <aside class="rx-sidebar">
+      <div class="rx-brand">ResolveX Admin</div>
+      <nav class="nav flex-column rx-nav">
+        <a class="nav-link active" href="#home" data-tab="home">Home</a>
+        <a class="nav-link" href="#faqs" data-tab="faq">FAQs</a>
+        <a class="nav-link" href="#feedback" data-tab="fb">Feedback</a>
+      </nav>
+      <div class="mt-auto pt-3 border-top">
+        <button class="btn btn-outline-danger btn-sm w-100" id="alog">Sign Out</button>
+      </div>
+    </aside>
+    <main class="rx-main w-100">
+      <div id="panel-home">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h1 class="fw-bold mb-1">Admin Home</h1>
+            <div class="text-muted">Quick overview and complaint management</div>
+          </div>
+        </div>
+        <div class="row g-3 mt-2 mb-4" id="stats"></div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h2 class="h5 mb-0">Manage complaints</h2>
+          <div class="btn-group">
+            <button class="btn btn-outline-secondary btn-filter" data-s="">All</button>
+            <button class="btn btn-outline-secondary btn-filter" data-s="pending">Pending</button>
+            <button class="btn btn-outline-secondary btn-filter" data-s="resolved">Resolved</button>
+          </div>
+        </div>
+        <div class="table-responsive rx-panel-card p-3">
+          <table class="table table-sm align-middle mb-0" id="tbl-c"></table>
+        </div>
+      </div>
+
+      <div id="panel-faq" class="d-none mt-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h2 class="h4 mb-0">FAQs</h2>
+        </div>
+        <form id="faq-add" class="rx-panel-card p-3 mb-3">
+          <input class="form-control mb-2" name="question" placeholder="Question" required />
+          <textarea class="form-control mb-2" name="answer" placeholder="Answer" required></textarea>
+          <button class="btn btn-primary">Add FAQ</button>
+        </form>
+        <div id="faq-list"></div>
+      </div>
+
+      <div id="panel-fb" class="d-none mt-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h2 class="h4 mb-0">Feedback</h2>
+        </div>
+        <div class="rx-panel-card p-3 mb-3">
+          <h3 class="h6">Complaint feedback</h3>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" id="tbl-fb-complaints"></table>
+          </div>
+        </div>
+        <div class="rx-panel-card p-3">
+          <h3 class="h6">Faculty feedback by student</h3>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" id="tbl-fb-faculty"></table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    async function requireAdmin() {
+      const r = await fetch("/api/admin/me", { credentials: "include" }).then((x) => x.json());
+      if (!r.logged_in) {
+        location.href = "/login.html";
+        return false;
+      }
+      return true;
+    }
+
+    async function aapi(path, opts = {}) {
+      const res = await fetch(path, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        ...opts,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!(await requireAdmin())) return;
+
+      const panelHome = document.getElementById("panel-home");
+      const panelFaq = document.getElementById("panel-faq");
+      const panelFb = document.getElementById("panel-fb");
+
+      function showPanel(key) {
+        panelHome.classList.toggle("d-none", key !== "home");
+        panelFaq.classList.toggle("d-none", key !== "faq");
+        panelFb.classList.toggle("d-none", key !== "fb");
+      }
+
+      document.querySelectorAll(".rx-nav .nav-link").forEach((a) => {
+        a.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const key = a.getAttribute("data-tab");
+          document.querySelectorAll(".rx-nav .nav-link").forEach((x) => x.classList.remove("active"));
+          a.classList.add("active");
+          showPanel(key);
+
+          if (key === "faq") {
+            await refreshFaqs();
+          }
+          if (key === "fb") {
+            const [fb, students] = await Promise.all([aapi("/api/admin/feedback"), loadStudentMap()]);
+            renderFeedbackTables(fb, students);
+          }
+        });
+      });
+
+      document.getElementById("alog").onclick = async () => {
+        await aapi("/api/admin/logout", { method: "POST" });
+        location.href = "/login.html";
+      };
+
+      async function refreshStats() {
+        const s = (await aapi("/api/admin/stats")).stats;
+        document.getElementById("stats").innerHTML = `
+          <div class="col-md-3"><div class="card rx-card-stat stat-total p-3"><div>Total</div><div class="fs-2 fw-bold">${s.total}</div></div></div>
+          <div class="col-md-3"><div class="card rx-card-stat stat-pending p-3"><div>Pending</div><div class="fs-2 fw-bold">${s.pending}</div></div></div>
+          <div class="col-md-3"><div class="card rx-card-stat stat-resolved p-3"><div>Resolved</div><div class="fs-2 fw-bold">${s.resolved}</div></div></div>
+          <div class="col-md-3"><div class="card rx-card-stat stat-high p-3"><div>Feedback count</div><div class="fs-2 fw-bold">${s.feedback}</div></div></div>`;
+      }
+
+      async function refreshComplaints(status = "") {
+        const q = status ? "?status=" + encodeURIComponent(status) : "";
+        const r = await aapi("/api/admin/complaints" + q);
+        const rows = r.complaints || [];
+        document.getElementById("tbl-c").innerHTML =
+          `<thead><tr><th>ID</th><th>Title</th><th>Student</th><th>Category</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody>` +
+          rows
+            .map(
+              (c) =>
+                `<tr><td><code>${c.complaint_id}</code></td><td>${(c.title || "—").replace(/</g, "&lt;")}</td><td>${c.student_name}</td><td>${c.category}</td><td>${c.priority || "—"}</td>
+                <td><span class="badge bg-secondary">${c.status}</span></td>
+                <td><select class="form-select form-select-sm st" data-id="${c.complaint_id}">
+                  <option value="pending">pending</option>
+                  <option value="in_progress">in_progress</option>
+                  <option value="resolved">resolved</option>
+                </select>
+                <button class="btn btn-sm btn-primary mt-1 sv" data-id="${c.complaint_id}">Save</button></td></tr>`
+            )
+            .join("") +
+          `</tbody>`;
+
+        document.querySelectorAll(".sv").forEach((b) =>
+          b.addEventListener("click", async () => {
+            const id = b.getAttribute("data-id");
+            const sel = document.querySelector(`select.st[data-id="${id}"]`);
+            await aapi("/api/update_status", {
+              method: "POST",
+              body: JSON.stringify({ complaint_id: id, status: sel.value }),
+            });
+            await refreshComplaints(document.querySelector(".btn-filter.active")?.getAttribute("data-s") || "");
+            await refreshStats();
+            alert("Status updated");
+          })
+        );
+      }
+
+      document.querySelectorAll(".btn-filter").forEach((b) =>
+        b.addEventListener("click", async () => {
+          document.querySelectorAll(".btn-filter").forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+          await refreshComplaints(b.getAttribute("data-s") || "");
+        })
+      );
+
+      async function refreshFaqs() {
+        const r = await aapi("/api/faqs");
+        document.getElementById("faq-list").innerHTML = (r.faqs || [])
+          .map(
+            (f) => `
+          <div class="rx-panel-card p-3 mb-2">
+            <strong>${f.question}</strong>
+            <p class="mb-2">${f.answer}</p>
+            <button class="btn btn-sm btn-danger btn-del-faq" data-id="${f.id}">Delete</button>
+          </div>`
+          )
+          .join("");
+
+        document.querySelectorAll(".btn-del-faq").forEach((btn) =>
+          btn.addEventListener("click", async () => {
+            if (!confirm("Delete FAQ?")) return;
+            await aapi("/api/faqs", {
+              method: "POST",
+              body: JSON.stringify({ op: "delete", id: Number(btn.getAttribute("data-id")) }),
+            });
+            await refreshFaqs();
+          })
+        );
+      }
+
+      document.getElementById("faq-add").onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        await aapi("/api/faqs", {
+          method: "POST",
+          body: JSON.stringify({ op: "create", question: fd.get("question"), answer: fd.get("answer") }),
+        });
+        e.target.reset();
+        await refreshFaqs();
+      };
+
+      let studentMap = null;
+      async function loadStudentMap() {
+        if (studentMap) return studentMap;
+        const res = await fetch("/data/csm.csv");
+        const text = await res.text();
+        const lines = text.trim().split(/\r?\n/).slice(1);
+        const map = {};
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const [idRaw, nameRaw] = line.split(",", 2);
+          if (!idRaw || !nameRaw) continue;
+          const id = idRaw.trim();
+          const name = nameRaw.trim().replace(/^\"|\"$/g, "");
+          map[id] = name;
+        }
+        studentMap = map;
+        return map;
+      }
+
+      function renderFeedbackTables(payload, students) {
+        const cRows = payload.complaint_feedback || [];
+        const fRows = payload.faculty_feedback || [];
+
+        // Complaint feedback: one row per complaint rating
+        const tblC = document.getElementById("tbl-fb-complaints");
+        if (!cRows.length) {
+          tblC.innerHTML = "<tbody><tr><td class=\"text-muted\">No complaint feedback yet.</td></tr></tbody>";
+        } else {
+          tblC.innerHTML =
+            "<thead><tr><th>Complaint ID</th><th>Rating</th><th>Comments</th></tr></thead><tbody>" +
+            cRows
+              .map(
+                (r) =>
+                  `<tr><td><code>${r.complaint_id}</code></td><td>${r.rating}</td><td>${(r.feedback || "")
+                    .toString()
+                    .replace(/</g, "&lt;")}</td></tr>`
+              )
+              .join("") +
+            "</tbody>";
+        }
+
+        // Faculty feedback: show by student ID (roll) when available
+        const tblF = document.getElementById("tbl-fb-faculty");
+        if (!fRows.length) {
+          tblF.innerHTML = "<tbody><tr><td class=\"text-muted\">No faculty feedback yet.</td></tr></tbody>";
+          return;
+        }
+
+        const safe = (s) => (s == null ? "" : String(s).replace(/</g, "&lt;"));
+        tblF.innerHTML =
+          "<thead><tr><th>Student ID</th><th>Student Name</th><th>Faculty</th><th>Department</th><th>Rating</th></tr></thead><tbody>" +
+          fRows
+            .map((r) => {
+              const sid = (r.student_id || "").trim();
+              const sname = sid && students[sid] ? students[sid] : "";
+              return `<tr><td>${safe(sid) || "<span class='text-muted'>N/A</span>"}</td><td>${safe(
+                sname
+              )}</td><td>${safe(r.faculty_name)}</td><td>${safe(r.department)}</td><td>${safe(
+                r.rating
+              )}</td></tr>`;
+            })
+            .join("") +
+          "</tbody>";
+      }
+
+      await refreshStats();
+      await refreshComplaints();
+      await refreshFaqs();
+      document.querySelector(".btn-filter").classList.add("active");
+      showPanel("home");
+    });
+  </script>
+</body>
+</html>

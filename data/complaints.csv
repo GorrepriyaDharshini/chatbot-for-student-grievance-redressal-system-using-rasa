@@ -1,0 +1,4 @@
+complaint_id,student_id,student_name,complaint_name,complaint_details,department_assigned,status
+101,22671A6601,"AKULA KESHAV","Fee-related complaint","Scholarship work delayed as sir is not available","Accounts Department",Pending
+102,22671A6615,"GORRE PRIYA DHARSHINI","Hostel-related complaint","Mess food served cold regularly","Hostel Warden","In Progress"
+103,23675A6601,"PAPIGARI ASHWINI","Exam-related complaint","Online exam portal crashed during test","Examination Cell",Pending

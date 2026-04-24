@@ -1,0 +1,233 @@
+version: "3.1"
+
+nlu:
+# ---------------- GREET ----------------
+- intent: greet
+  examples: |
+    - hi
+    - hello
+    - hey
+    - hey bot
+    - hello there
+    - good morning
+    - good evening
+    - hi resolvex
+    - hello chatbot
+    - namaste
+    - hi there
+    - hey dude
+    - hi assistant
+    - hello sir
+    - hello madam
+
+# ---------------- REGISTER COMPLAINT ----------------
+- intent: register_complaint
+  examples: |
+    - I want to register a complaint
+    - I need to file a complaint
+    - I have an issue
+    - I want to raise a grievance
+    - I want to complain about something
+    - I need help with a problem
+    - I have a problem in my department
+    - I want to report an issue
+    - there is a problem in the lab
+    - I am facing an issue with wifi
+    - I want to submit a complaint
+    - can you help me file a complaint
+    - I need to log a complaint
+    - complaint registration please
+    - how do I raise a complaint
+    - I want to report a grievance
+    - there is an issue with infrastructure
+    - I have a complaint about faculty
+    - I want to complain about exam marks
+    - register complaint
+    - grievance complaint
+    - file grievance
+    - I need to submit a grievance
+    - please take my complaint
+    - I want to report hostel food problem
+
+# ---------------- CHECK STATUS ----------------
+- intent: check_status
+  examples: |
+    - check complaint status
+    - what is the status of my complaint
+    - track my complaint
+    - I want to know my complaint status
+    - any update on my complaint
+    - check status for [CMP1234](complaint_id)
+    - track complaint [CMP5678](complaint_id)
+    - where is my complaint
+    - status of complaint [CMP4321](complaint_id)
+    - check [CMP8899](complaint_id)
+    - can you track my complaint
+    - give me complaint update
+
+# ---------------- OPEN DISCUSSION ----------------
+- intent: open_discussion
+  examples: |
+    - open discussion forum
+    - discussion board
+    - I want to join discussion
+    - student forum
+    - open community chat
+    - I want to talk with other students
+    - open forum
+    - discussion section please
+    - take me to discussion forum
+
+# ---------------- FAQ ----------------
+- intent: faq
+  examples: |
+    - faq
+    - frequently asked questions
+    - show faqs
+    - common questions
+    - help section
+    - I need help
+    - what can you do
+    - how does this system work
+    - give me information
+    - help me understand the system
+
+# ---------------- FACULTY FEEDBACK ----------------
+- intent: faculty_feedback
+  examples: |
+    - faculty feedback
+    - I want to rate a professor
+    - submit faculty feedback
+    - give feedback about teacher
+    - I want to review a faculty member
+    - feedback for professor
+    - teacher review
+    - I want to give feedback on teaching
+    - submit teacher feedback
+
+# ---------------- CONTACT ----------------
+- intent: contact_us
+  examples: |
+    - contact the department
+    - helpline number
+    - who can I email
+    - support contact
+    - how to contact admin
+    - give me contact details
+    - department contact info
+    - I need support
+    - how can I reach the department
+
+# ---------------- GOODBYE ----------------
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you
+    - thanks bye
+    - that's all
+    - ok bye
+    - catch you later
+    - bye bot
+    - thank you goodbye
+
+# ---------------- INFORM (VERY IMPORTANT) ----------------
+- intent: inform
+  examples: |
+    - my name is Neha Sharma
+    - I am Rahul Verma
+    - this is Priya
+    - my roll number is 22671A6615
+    - roll number 22671A6615
+    - 22671A6615
+    - my email is student@gmail.com
+    - student@gmail.com
+    - email id is test123@gmail.com
+    - I am from AIML department
+    - AIML department
+    - CSE department
+    - IT branch
+    - the issue is lab wifi not working
+    - lab systems are not working
+    - classroom is not clean
+    - faculty is not teaching properly
+    - exam marks issue
+    - infrastructure problem
+    - hostel issue
+    - transport problem
+    - academic issue
+    - other category
+    - my issue is regarding attendance
+    - there is a problem with timetable
+    - hostel food
+    - hostel food issue
+    - food is not good
+    - the quality is not acceptable
+    - it is not working properly
+    - the lab pc is not booting
+    - food quality is very poor
+    - mess food is bad
+    - the hostel food is not hygienic
+    - water is not clean in hostel
+    - fan is not working in classroom
+    - washroom is not clean
+    - wifi is very slow
+    - internet is not working in lab
+    - teacher is absent regularly
+    - we did not get marks updated
+    - there is no projector in our class
+    - classroom lights are not working
+    - facilities
+    - infrastructure
+    - harassment
+    - academic
+    - other
+
+# ---------------- AFFIRM ----------------
+- intent: affirm
+  examples: |
+    - yes
+    - yeah
+    - yep
+    - correct
+    - that's right
+    - absolutely
+    - sure
+    - ok
+    - okay
+    - yes please
+
+# ---------------- DENY ----------------
+# Avoid short "not" phrases — those often describe problems (handled as inform during forms).
+- intent: deny
+  examples: |
+    - no
+    - nope
+    - not really
+    - I don't think so
+    - cancel
+    - no thanks
+    - stop
+    - don't proceed
+    - never mind cancel that
+    - do not file this complaint
+
+# ---------------- THANK YOU ----------------
+- intent: thank_you
+  examples: |
+    - thanks
+    - thank you
+    - thanks a lot
+    - thank you so much
+    - got it thanks
+
+# ---------------- CHITCHAT ----------------
+- intent: chitchat
+  examples: |
+    - how are you
+    - what are you doing
+    - can we talk
+    - are you there
+    - who are you
+    - what can you help with
+    - tell me what you can do

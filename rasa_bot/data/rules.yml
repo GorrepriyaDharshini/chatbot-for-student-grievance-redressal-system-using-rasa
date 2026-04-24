@@ -1,0 +1,114 @@
+version: "3.1"
+
+rules:
+
+# While a form is active, do not let short-intent rules (deny/affirm/greet, etc.)
+# steal the turn — e.g. "food is not good" must fill description, not match deny.
+
+# ---------------- GREETING ----------------
+- rule: Respond to greeting politely
+  condition:
+    - active_loop: null
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+# ---------------- GOODBYE ----------------
+- rule: Respond to goodbye politely
+  condition:
+    - active_loop: null
+  steps:
+    - intent: goodbye
+    - action: utter_goodbye
+
+- rule: Respond to thanks
+  condition:
+    - active_loop: null
+  steps:
+    - intent: thank_you
+    - action: utter_thank_you
+
+- rule: Handle basic chitchat
+  condition:
+    - active_loop: null
+  steps:
+    - intent: chitchat
+    - action: utter_chitchat
+
+- rule: Respond to affirm
+  condition:
+    - active_loop: null
+  steps:
+    - intent: affirm
+    - action: utter_chitchat
+
+- rule: Respond to deny
+  condition:
+    - active_loop: null
+  steps:
+    - intent: deny
+    - action: utter_default
+
+# ---------------- COMPLAINT FORM START ----------------
+- rule: Start complaint registration form
+  condition:
+    - active_loop: null
+  steps:
+    - intent: register_complaint
+    - action: utter_start_complaint
+    - action: complaint_form
+    - active_loop: complaint_form
+
+# ---------------- FORM SUBMISSION ----------------
+- rule: Submit complaint after form completion
+  condition:
+    - active_loop: complaint_form
+  steps:
+    - action: complaint_form
+    - active_loop: null
+    - action: action_submit_complaint
+
+# ---------------- STATUS CHECK ----------------
+- rule: Handle complaint status request
+  condition:
+    - active_loop: null
+  steps:
+    - intent: check_status
+    - action: action_check_status
+
+# ---------------- FAQ ----------------
+- rule: Provide FAQ guidance
+  condition:
+    - active_loop: null
+  steps:
+    - intent: faq
+    - action: utter_faq
+
+# ---------------- DISCUSSION ----------------
+- rule: Provide discussion forum info
+  condition:
+    - active_loop: null
+  steps:
+    - intent: open_discussion
+    - action: utter_discussion
+
+# ---------------- FACULTY FEEDBACK ----------------
+- rule: Provide faculty feedback info
+  condition:
+    - active_loop: null
+  steps:
+    - intent: faculty_feedback
+    - action: utter_faculty_feedback
+
+# ---------------- CONTACT ----------------
+- rule: Provide contact information
+  condition:
+    - active_loop: null
+  steps:
+    - intent: contact_us
+    - action: utter_contact
+
+- rule: Handle fallback gracefully
+  steps:
+    - intent: nlu_fallback
+    - action: action_default_fallback

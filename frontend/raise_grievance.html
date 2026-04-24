@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Raise a Complaint | ResolveX</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="rx-layout" id="layout"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireStudent();
+      if (!user) return;
+
+      document.getElementById("layout").innerHTML =
+        mountStudentSidebar("raise") +
+        `<main class="rx-main rx-main-raise w-100">
+          <div class="rx-raise-card">
+            <h1 class="rx-raise-title">Raise a Complaint</h1>
+            <p class="rx-raise-sub">Fill in the details below. We'll track and resolve your issue.</p>
+
+            <form id="rx-raise-form" class="rx-raise-form" enctype="multipart/form-data">
+              <div class="mb-4">
+                <label class="rx-label" for="rx-title">Title</label>
+                <input class="rx-input" id="rx-title" name="title" type="text" placeholder="Brief Summary of your issue" required />
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="rx-label" for="rx-category">Category</label>
+                  <select class="rx-input rx-select" id="rx-category" name="category">
+                    <option value="academic">Academic</option>
+                    <option value="hostel">Hostel</option>
+                    <option value="harassment">Harassment</option>
+                    <option value="infrastructure">Infrastructure</option>
+                    <option value="other" selected>Other</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="rx-label" for="rx-priority">Priority</label>
+                  <select class="rx-input rx-select" id="rx-priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="rx-label" for="rx-desc">Declaration</label>
+                <textarea class="rx-input rx-textarea" id="rx-desc" name="description" rows="5" placeholder="Describe your issue in detail.." required></textarea>
+              </div>
+
+              <div class="mb-4">
+                <label class="rx-label">Attachment</label>
+                <label class="rx-upload-zone" id="rx-upload-zone">
+                  <input type="file" id="rx-file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx" />
+                  <span class="rx-upload-icons" aria-hidden="true">🖼️ 📄</span>
+                  <span class="rx-upload-text">click to upload related files</span>
+                  <span class="rx-upload-name d-none" id="rx-file-name"></span>
+                </label>
+              </div>
+
+              <label class="rx-anon-row mb-4" for="rx-anon">
+                <span class="rx-label mb-0">Submit Anonymously</span>
+                <span class="rx-toggle">
+                  <input type="checkbox" name="anonymous" value="true" id="rx-anon" />
+                  <span class="rx-toggle-slider"></span>
+                </span>
+              </label>
+
+              <p class="text-danger small d-none" id="rx-err"></p>
+              <p class="text-success small d-none" id="rx-ok"></p>
+
+              <button type="submit" class="rx-btn-submit" id="rx-submit">Submit Complaint</button>
+            </form>
+          </div>
+        </main>`;
+
+      document.getElementById("rx-signout")?.addEventListener("click", () => logoutStudent());
+
+      const fileInput = document.getElementById("rx-file");
+      const fileName = document.getElementById("rx-file-name");
+      const zone = document.getElementById("rx-upload-zone");
+
+      zone.addEventListener("click", (e) => {
+        if (e.target !== fileInput) fileInput.click();
+      });
+      fileInput.addEventListener("change", () => {
+        const f = fileInput.files?.[0];
+        if (f) {
+          fileName.textContent = f.name;
+          fileName.classList.remove("d-none");
+        } else {
+          fileName.classList.add("d-none");
+        }
+      });
+
+      document.getElementById("rx-raise-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("rx-err");
+        const ok = document.getElementById("rx-ok");
+        const btn = document.getElementById("rx-submit");
+        err.classList.add("d-none");
+        ok.classList.add("d-none");
+        btn.disabled = true;
+
+        const fd = new FormData(e.target);
+        if (!document.getElementById("rx-anon").checked) {
+          fd.delete("anonymous");
+        }
+
+        try {
+          const res = await fetch("/api/complaints", {
+            method: "POST",
+            body: fd,
+            credentials: "include",
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          ok.textContent = "Submitted successfully. Complaint ID: " + data.complaint_id;
+          ok.classList.remove("d-none");
+          e.target.reset();
+          fileName.classList.add("d-none");
+        } catch (ex) {
+          err.textContent = ex.message || "Something went wrong.";
+          err.classList.remove("d-none");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
