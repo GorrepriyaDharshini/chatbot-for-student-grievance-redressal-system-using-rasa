@@ -1,3 +1,4 @@
 # RASA action server (custom actions)
+
 action_endpoint:
-  url: "http://localhost:5055/webhook"
+  url: "https://rasa-actions-1v3o.onrender.com/webhook"
