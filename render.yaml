@@ -1,0 +1,24 @@
+services:
+  # --- Rasa NLP Server ---
+  - type: web
+    name: rasa-server
+    runtime: python
+    pythonVersion: "3.10.13"
+    buildCommand: pip install -r requirements-rasa.txt
+    startCommand: cd rasa_bot && rasa run --enable-api --cors "*" --port 10000
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+
+  # --- Rasa Actions Server ---
+  - type: web
+    name: rasa-actions
+    runtime: python
+    pythonVersion: "3.10.13"
+    buildCommand: pip install -r requirements-rasa.txt
+    startCommand: cd rasa_bot && rasa run actions --port 5055
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5055
