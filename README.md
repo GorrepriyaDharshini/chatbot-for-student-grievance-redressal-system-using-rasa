@@ -61,6 +61,14 @@ The first Flask or action run calls `init_db()` and creates `backend/database.db
 - **Default admin:** `admin@aiml.edu` / `admin123`
 - Register students from the login page (**Create an Account**).
 
+## Deployment notes
+
+- The Flask app and static frontend can be deployed separately from Rasa.
+- In production, host the Rasa server on a separate platform such as **Render**, **Railway**, or another always-on service.
+- Set `RASA_SERVER` to the external Rasa base URL in your production environment (for example, `https://your-rasa-host.example.com`).
+- Set `RESOLVEX_SECRET_KEY` to a strong secret in production.
+- Vercel serverless functions use ephemeral storage, so `backend/database.db` is not persistent on Vercel. For production, use a persistent database host or deploy Flask on a platform that supports persistent disk.
+
 ## Run RASA (three terminals)
 
 All commands assume `cd student-grievance-system` and venv activated, with `PYTHONPATH` set to the project root.
