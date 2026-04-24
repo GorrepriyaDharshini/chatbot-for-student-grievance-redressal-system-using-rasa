@@ -7,3 +7,6 @@ __pycache__/
 *.log
 .DS_Store
 .env
+rasa_bot/.rasa/
+rasa_bot/models/
+rasa_bot/tmp/
