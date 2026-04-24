@@ -33,7 +33,10 @@ from backend.config import SECRET_KEY  # noqa: E402
 FRONTEND_DIR = ROOT / "frontend"
 UPLOAD_DIR = ROOT / "uploads"
 # Rasa REST API (server-side proxy avoids browser CORS / mixed-host issues)
-RASA_SERVER = os.environ.get("RASA_SERVER", "http://127.0.0.1:5005").rstrip("/")
+if os.environ.get("VERCEL", "").lower() in ("1", "true", "yes"):
+    RASA_SERVER = os.environ.get("RASA_SERVER", "").rstrip("/")
+else:
+    RASA_SERVER = os.environ.get("RASA_SERVER", "http://127.0.0.1:5005").rstrip("/")
 
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
 app.config["SECRET_KEY"] = SECRET_KEY
@@ -248,6 +251,15 @@ def profile():
 @app.route("/api/rasa/health", methods=["GET"])
 @login_required_student
 def rasa_health():
+    if not RASA_SERVER:
+        return jsonify(
+            {
+                "ok": True,
+                "rasa_reachable": False,
+                "rasa_server": RASA_SERVER,
+                "error": "RASA_SERVER is not configured. Set the environment variable on Vercel.",
+            }
+        )
     url = f"{RASA_SERVER}/version"
     try:
         req = urllib.request.Request(url, method="GET")
@@ -274,6 +286,13 @@ def rasa_message():
     sid = session["student_id"]
     sender = f"student_{sid}"
     url = f"{RASA_SERVER}/webhooks/rest/webhook"
+    if not RASA_SERVER:
+        return jsonify(
+            {
+                "ok": False,
+                "error": "RASA_SERVER is not configured. Set RASA_SERVER to your hosted Rasa endpoint.",
+            }
+        ), 503
     payload = json.dumps({"sender": sender, "message": message}).encode("utf-8")
     req = urllib.request.Request(
         url,
