@@ -10,3 +10,4 @@ __pycache__/
 rasa_bot/.rasa/
 rasa_bot/models/
 rasa_bot/tmp/
+.vercel
