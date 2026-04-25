@@ -38,6 +38,9 @@ def _connect_postgres():
     # Fix URL scheme for psycopg2
     if url and url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
+    # Remove Supabase-specific query parameters psycopg2 can't handle
+    if url and "?" in url:
+        url = url.split("?")[0]
     conn = psycopg2.connect(url, cursor_factory=psycopg2.extras.RealDictCursor)
     conn.autocommit = False
     return conn
