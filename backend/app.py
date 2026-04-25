@@ -260,12 +260,15 @@ def rasa_health():
                 "error": "RASA_SERVER is not configured. Set the environment variable on Vercel.",
             }
         )
-    url = f"{RASA_SERVER}/version"
+    url = f"{RASA_SERVER}/"
     try:
         req = urllib.request.Request(url, method="GET")
         with urllib.request.urlopen(req, timeout=3) as resp:
             ok = 200 <= resp.status < 300
         return jsonify({"ok": True, "rasa_reachable": ok, "rasa_server": RASA_SERVER})
+    except urllib.error.HTTPError:
+        # The server responded with an error (e.g., 404 or 405), but it is reachable!
+        return jsonify({"ok": True, "rasa_reachable": True, "rasa_server": RASA_SERVER})
     except (urllib.error.URLError, OSError):
         return jsonify(
             {
@@ -616,6 +619,22 @@ def admin_feedback():
             ],
         }
     )
+
+
+# Keep Hugging Face Space alive
+import threading
+import time
+import urllib.request
+
+def keep_hf_alive():
+    while True:
+        try:
+            urllib.request.urlopen("https://priya-dharshini05-rasa-grievance-server.hf.space", timeout=10)
+        except Exception:
+            pass
+        time.sleep(1500)  # ping every 25 minutes
+
+threading.Thread(target=keep_hf_alive, daemon=True).start()
 
 
 if __name__ == "__main__":
