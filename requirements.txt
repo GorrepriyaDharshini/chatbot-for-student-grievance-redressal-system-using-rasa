@@ -2,6 +2,7 @@
 Flask>=2.3,<3.0
 flask-cors>=4.0,<5.0
 Werkzeug>=2.3,<3.0
+psycopg2-binary
 
 # --- RASA (Python 3.8–3.10 ONLY; not installable on Python 3.11+ with OSS 3.6.x)
 # Create a separate venv with Python 3.10, then:
